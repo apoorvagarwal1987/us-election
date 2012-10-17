@@ -341,6 +341,19 @@ batch_election <- function(batch, n,state){
     full_election <- as.data.frame(do.call("rbind",full_election_temp))
     return(full_election)    
 }
+# Function to read all the files together
+read_all <- function(){
+    precints_info_files <- list.files(path="data/precints_census/")
+    for(i in precints_info_files){
+        file_name <- paste("data/precints_census/",i,sep="/")
+        x <- read.xls(file_name,sheet=1,na.strings ='NA')
+        assign(i,x)
+    }
+} 
+
+
+
+#us_precint_county_info = read.xls("data/precints_census/02.xls",sheet=1,na.strings='NA')
 
 
 ********************************************************************************************************************************************************
