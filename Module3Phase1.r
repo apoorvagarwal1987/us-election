@@ -253,7 +253,6 @@ benford_law <- function(county_result){
         }
         else {}
     }
-    print(digit_occurences[[1]])
     tot_rows <- length(county_result)
     total_prob <- 0
     for (i in 1:10){
@@ -273,5 +272,15 @@ benford_law <- function(county_result){
 }
 
 verify_result <- function(){
-    benford_law(as.list(voted_data[,4]))
+
+    Manu <- benford_law(as.list(voted_data[,4]))
+    Chelsea <- benford_law(as.list(voted_data[,5]))
+    Arsenal <- benford_law(as.list(voted_data[,6]))
+    print(Manu)
+    print(Chelsea)
+    print(Arsenal)
+    #test <- cbind(Manu,Chelsea,Arsenal)
+    print(dchisq(Manu,df=9))
+    print(dchisq(Chelsea,df=9))
+    print(dchisq(Arsenal,df=9))
 }
