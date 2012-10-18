@@ -272,7 +272,6 @@ benford_law <- function(county_result){
 }
 
 verify_result <- function(){
-
     Manu <- benford_law(as.list(voted_data[,4]))
     Chelsea <- benford_law(as.list(voted_data[,5]))
     Arsenal <- benford_law(as.list(voted_data[,6]))
@@ -280,7 +279,10 @@ verify_result <- function(){
     print(Chelsea)
     print(Arsenal)
     #test <- cbind(Manu,Chelsea,Arsenal)
-    print(dchisq(Manu,df=9))
-    print(dchisq(Chelsea,df=9))
-    print(dchisq(Arsenal,df=9))
+    print(pchisq(Manu,df=9,lower=F))
+    print(pchisq(Chelsea,df=9,lower=F))
+    print(pchisq(Arsenal,df=9,lower=F))
+    
+#    print(pchisq(Chelsea,df=9))
+#    print(dchisq(Arsenal,df=9))
 }
