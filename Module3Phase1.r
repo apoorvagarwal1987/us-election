@@ -215,3 +215,63 @@ position_digit <- function(number,digit){
     num <- as.numeric(strsplit(as.character(number),"")[[1]])[len-(digit-1)]
     return(num)
 }
+
+benford_law <- function(county_result){
+    #print(county_result)
+    digit_occurences <- as.list(rep(0,10))
+    for(i in 1:length(county_result)){
+        digit <- position_digit(county_result[[i]],2)
+        if(digit == 1){
+            digit_occurences[[1]] <- as.list(as.integer(digit_occurences[[1]]) + 1)
+        }
+        else if(digit == 2){
+            digit_occurences[[2]] <- as.list(as.integer(digit_occurences[[2]]) + 1)
+        }
+        else if(digit == 3){
+            digit_occurences[[3]] <- as.list(as.integer(digit_occurences[[3]]) + 1)
+        }
+        else if(digit == 4){
+            digit_occurences[[4]] <- as.list(as.integer(digit_occurences[[4]]) + 1)
+        }
+        else if(digit == 5){
+            digit_occurences[[5]] <- as.list(as.integer(digit_occurences[[5]]) + 1)
+        }
+        else if(digit == 6){
+            digit_occurences[[6]] <- as.list(as.integer(digit_occurences[[6]]) + 1)
+        }
+        else if(digit == 7){
+            digit_occurences[[7]] <- as.list(as.integer(digit_occurences[[7]]) + 1)
+        }
+        else if(digit == 8){
+            digit_occurences[[8]] <- as.list(as.integer(digit_occurences[[8]]) + 1)
+        }
+        else if(digit == 9){
+            digit_occurences[[9]] <- as.list(as.integer(digit_occurences[[9]]) + 1)
+        }
+        else if(digit == 0){
+            digit_occurences[[10]] <- as.list(as.integer(digit_occurences[[10]]) + 1)
+        }
+        else {}
+    }
+    print(digit_occurences[[1]])
+    tot_rows <- length(county_result)
+    total_prob <- 0
+    for (i in 1:10){
+        digit_frequency = as.integer(digit_occurences[[i]])
+        if(i<10){
+            prob <- benford_probability_2Dig(i)
+        }
+        else{
+            prob <- benford_probability_2Dig(0)
+        }
+
+        numerator <- (digit_frequency - tot_rows * prob)^2
+        denominator <- (tot_rows * prob)
+        total_prob <- total_prob + (numerator/denominator)
+    }
+    return (total_prob)
+}
+
+verify_result <- function(){
+    benford_law(as.list(voted_data[,4]))
+}
