@@ -7,7 +7,7 @@
 #               4b) In this machine will replace the votes of another candidate with votes for candidate A if candidate A has probability lower then both the other candidate
 
 
-*********************************************************************Data Loading****************************************************************************
+#*********************************************************************Data Loading****************************************************************************
 library("data.table")
 library("gdata") #for loading data from excel-sheets
 
@@ -22,7 +22,7 @@ us_precint_county_info = read.xls("data/precints_census/02.xls",sheet=1,na.strin
 #To have the information about state and electoral
 state_electoral = read.xls("data/state-electoral.xlsx",sheet=1,na.strings='NA')
 
-*******************************************************************Generic Functions*********************************************************************
+#*******************************************************************Generic Functions*********************************************************************
 
 #Function to find the choice of people authentic approach 
 candidate_choice <- function(n){
@@ -89,7 +89,7 @@ candidate_choice_ballot_stuffing <- function(n){
 #Fraud -1 : Giving the Preference to one of the candidate by making the distribution of the votes in favour of that candidate and probability is decreased
 # MANU, CHELSEA, ARSENAL.
 
-vote_generation_precints_fraud1 <- function(us_precint_county_info){
+vote_generation_precints_fraud1 <- function(){
     #us_precint_info <- us_precint_county_info[c(6,8)]
     us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
     #us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
@@ -125,7 +125,7 @@ vote_generation_precints_fraud1 <- function(us_precint_county_info){
     return (votes_distributed_alaska)
 }
 
-vote_generation_precints_fraud2 <- function(us_precint_county_info){
+vote_generation_precints_fraud2 <- function(){
     #us_precint_info <- us_precint_county_info[c(6,8)]
     us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
     #us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
@@ -169,7 +169,7 @@ vote_generation_precints_fraud2 <- function(us_precint_county_info){
 
 # Inroduction of Fraud mechanism such that it tries to introduce the fraud in the voting machine by replacing some percentage of the votes of candidate
 # either CHELSEA or ARSENAL to increase the vote count of other candidate MANU-WINS whenever the probability of liking the candidate MANU goes below certain threshold.
-vote_generation_precints_fraud3 <- function(us_precint_county_info){
+vote_generation_precints_fraud3 <- function(){
     #us_precint_info <- us_precint_county_info[c(6,8)]
     #us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
     us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
@@ -236,8 +236,8 @@ vote_generation_precints_fraud3 <- function(us_precint_county_info){
     return (votes_distributed_alaska)
 }
 #Aggregation of the votes for all the precints for the particular at the county level
-vote_aggregation_county <- function(us_precint_county_info){
-    alaska_votes_precints <- vote_generation_precints_fraud3(us_precint_county_info)
+vote_aggregation_county <- function(){
+    alaska_votes_precints <- vote_generation_precints_fraud3()
     dt <- as.data.table(alaska_votes_precints)
     alaska_county_result <- data.frame(dt[,list(Precints = .N,Population = sum(Population),MANU = sum(MANU),CHELSEA = sum(CHELSEA),ARSENAL = sum(ARSENAL)),by="County-Code"])
     colnames(alaska_county_result)[1] <- "County-Code"
@@ -246,8 +246,8 @@ vote_aggregation_county <- function(us_precint_county_info){
 }
 
 #Aggregation of the votes for all the counties for the particular state at the state level
-result_state <- function(state,stateid,us_precint_county_info){
-    vote_tally <- vote_aggregation_county(us_precint_county_info)
+result_state <- function(state){
+    vote_tally <- vote_aggregation_county()
     electoral <- as.numeric(state_electoral[state_electoral$State == state,][2])
     state_total <- as.data.frame(cbind(state,electoral,nrow(vote_tally),sum(vote_tally[2]),t(t(cbind.data.frame(as.vector(colSums(vote_tally))))[,4:6])))
     colnames(state_total)[1] <- "State"
@@ -261,8 +261,8 @@ result_state <- function(state,stateid,us_precint_county_info){
 }
 
 #Electoral Allocation according to the vote count of candidate
-electoral_allocation <- function(state,stateid,us_precint_county_info){
-    state_result <- result_state(state,stateid,us_precint_county_info)
+electoral_allocation <- function(state){
+    state_result <- result_state(state)
     winning_party_state <- max.col(state_result[c(5:7)])
     electoral_votes <- state_result[2]
     state_name <- state_result[1]
@@ -296,10 +296,10 @@ electoral_allocation <- function(state,stateid,us_precint_county_info){
 }
 
 #Function to randomly do the election over particular state for n times
-random_state_election <- function(n,state,stateid,us_precint_county_info){
+random_state_election <- function(n,state){
     random_vote <- list()
     for(i in 1:n){
-        dataframe <- electoral_allocation(state,stateid,us_precint_county_info)
+        dataframe <- electoral_allocation(state)
         class.data  <- sapply(dataframe, class)
         factor.vars <- class.data[class.data == "factor"]
         for (colname in names(factor.vars)){
@@ -313,8 +313,8 @@ random_state_election <- function(n,state,stateid,us_precint_county_info){
 }
 
 #Function to calculate how are the wins distributed over the candidate after n Tries
-random_wins <- function(n,state,stateid,us_precint_county_info){
-    result_tally <- random_state_election(n,state,stateid,us_precint_county_info)
+random_wins <- function(n,state){
+    result_tally <- random_state_election(n,state)
     electoral <- as.numeric(result_tally[n,2])
     result_tally$MANU <- as.numeric(result_tally$MANU)
     result_tally$CHELSEA <- as.numeric(result_tally$CHELSEA)
@@ -333,21 +333,21 @@ random_wins <- function(n,state,stateid,us_precint_county_info){
    
 
 #Function to set the batches of election 
-batch_election <- function(batch, n,state,stateid){
-    precints_info_files <- list.files(path="data/precints_census/")
-    match <- paste(as.character(stateid),"xls",sep=".")
-    for(i in precints_info_files){
-        file_name <- paste("data/precints_census/",i,sep="/")
-        x <- read.xls(i,sheet=1,na.strings ='NA')
-        if(match == i){
-            us_precint_county_info <- x
-        }
-        assign(i,x)
+batch_election <- function(batch, n,state){
+    # precints_info_files <- list.files(path="data/precints_census/")
+    # #match <- paste(as.character(stateid),"xls",sep=".")
+    # for(i in precints_info_files){
+    #     file_name <- paste("data/precints_census/",i,sep="/")
+    #     x <- read.xls(i,sheet=1,na.strings ='NA')
+    #     # if(match == i){
+    #     #     us_precint_county_info <- x
+    #     # }
+    #     assign(i,x)
 
-    }    
+    # }    
     full_election_temp <- list()
     for (i in 1:batch){
-        full_election_temp[[i]] <- random_wins(n,state,stateid,us_precint_info)
+        full_election_temp[[i]] <- random_wins(n,state)
     }
     full_election <- as.data.frame(do.call("rbind",full_election_temp))
     return(full_election)    
