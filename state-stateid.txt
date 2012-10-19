@@ -1,0 +1,4 @@
+#	Alaska 							02
+#	North Dakota					38
+#	South Dakota					46
+#	Wyoming							56
