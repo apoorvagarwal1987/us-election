@@ -7,6 +7,8 @@ us_states_census_info = read.table("data/USA_States.txt" ,sep="," ,header =T)
 
 # To collect the information like total population, number of precints for each county
 #us_precint_county_info = read.table("data/precints_census/02.tab", sep = "\t",header=T )
+
+#
 us_precint_county_info = read.xls("data/precints_census/02.xls",sheet=1,na.strings='NA')
 
 
@@ -33,7 +35,7 @@ candidate_choice <- function(n){
 	return(choice)
 }
 
-vote_generation_precints_fraud1 <- function(){
+vote_generation_precints <- function(){
 	#us_precint_info <- us_precint_county_info[c(6,8)]
 	us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
 	#us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
@@ -46,7 +48,6 @@ vote_generation_precints_fraud1 <- function(){
 	sectionRandom <- list()
 	candidate <- list()
 	for(i in 1:nrow(us_precint_info)){
-		# basically doing the booth capturing in the way that all the precints supports Candidate A(MANU)
 		choice <- candidate_choice(length(sections))
 		total_candidate <- 0
 		for ( j in 1:(length(sections)-1)){
@@ -71,11 +72,11 @@ vote_generation_precints_fraud1 <- function(){
 
 #Aggregation of the votes for all the precints for the particular at the county level
 vote_aggregation_county <- function(){
-	votes_precints <- vote_generation_precints_fraud3()
+	votes_precints <- vote_generation_precints()
 	dt <- as.data.table(votes_precints)
 	county_result <- data.frame(dt[,list(Precints = .N,Population = sum(Population),MANU = sum(MANU),CHELSEA = sum(CHELSEA),ARSENAL = sum(ARSENAL)),by="County-Code"])
 	colnames(county_result)[1] <- "County-Code"
-	write.table(county_result)
+    write.table(county_result,file="county_result.txt",append=T,col.names=F,row.names=F)
 	return(county_result)
 }
 
@@ -273,6 +274,7 @@ benford_law <- function(county_result){
 }
 
 verify_result <- function(){
+	voted_data <- read.table("county_result.txt",sep="",header=F)
 	Manu <- benford_law(as.list(voted_data[,4]))
 	Chelsea <- benford_law(as.list(voted_data[,5]))
 	Arsenal <- benford_law(as.list(voted_data[,6]))
