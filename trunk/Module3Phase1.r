@@ -289,3 +289,32 @@ verify_result <- function(){
 #    print(pchisq(Chelsea,df=9))
 #    print(dchisq(Arsenal,df=9))
 }
+
+
+batch_verification <- function(size){
+	for (i in 1:size){
+		ty <- vote_aggregation_county()	
+		count <- 0
+		voted_data <- read.table("county_result.txt",sep="",header=F)
+		Manu <- benford_law(as.list(voted_data[,4]))
+		Chelsea <- benford_law(as.list(voted_data[,5]))
+		Arsenal <- benford_law(as.list(voted_data[,6]))
+		#print(Manu)
+		#print(Chelsea)
+		#print(Arsenal)
+		Pmanu <- pchisq(Manu,df=9,lower=F)
+		Pchelsea <- pchisq(Chelsea,df=9,lower=F)
+		Parsenal <- pchisq(Arsenal,df=9,lower=F)
+		#test <- cbind(Manu,Chelsea,Arsenal)
+		if( Pmanu<0.05 | Pchelsea < 0.05 | Parsenal < 0.05){
+			#print()
+			#print(pchisq(Chelsea,df=9,lower=F))
+			#print(pchisq(Arsenal,df=9,lower=F))
+			count <- count +1
+		}	
+		else{
+			cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+		}	
+	}
+	cat ("Detected :",count, "  out of ", size, " times")
+}
