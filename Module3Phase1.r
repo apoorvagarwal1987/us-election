@@ -214,7 +214,7 @@ benford_probability_range <- function(){
 
 position_digit <- function(number,digit){
 	len <- str_length(as.character(number))
-	num <- as.numeric(strsplit(as.character(number),"")[[1]])[len-(digit-1)]
+	num <- as.numeric(strsplit(as.character(number),"")[[1]])[digit]
 	return(num)
 }
 
