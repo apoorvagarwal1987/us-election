@@ -214,7 +214,12 @@ benford_probability_range <- function(){
 
 position_digit <- function(number,digit){
 	len <- str_length(as.character(number))
-	num <- as.numeric(strsplit(as.character(number),"")[[1]])[digit]
+	if (len==1){
+		num = -1
+	}
+	else{
+		num <- as.numeric(strsplit(as.character(number),"")[[1]])[digit]
+	}
 	return(num)
 }
 
@@ -253,7 +258,9 @@ benford_law <- function(county_result){
 		else if(digit == 0){
 			digit_occurences[[10]] <- as.list(as.integer(digit_occurences[[10]]) + 1)
 		}
-		else {}
+		else {
+			return (-1)
+		}
 	}
 	tot_rows <- length(county_result)
 	total_prob <- 0
@@ -278,14 +285,19 @@ verify_result <- function(){
 	Manu <- benford_law(as.list(voted_data[,4]))
 	Chelsea <- benford_law(as.list(voted_data[,5]))
 	Arsenal <- benford_law(as.list(voted_data[,6]))
-	print(Manu)
-	print(Chelsea)
-	print(Arsenal)
-	#test <- cbind(Manu,Chelsea,Arsenal)
-	print(pchisq(Manu,df=9,lower=F))
-	print(pchisq(Chelsea,df=9,lower=F))
-	print(pchisq(Arsenal,df=9,lower=F))
-	
+	if(Manu == -1 | Chelsea == -1 | Arsenal == -1){
+		print("Single digit voting cannot process data")
+
+	}
+	else{
+		print(Manu)
+		print(Chelsea)
+		print(Arsenal)
+		#test <- cbind(Manu,Chelsea,Arsenal)
+		print(pchisq(Manu,df=9,lower=F))
+		print(pchisq(Chelsea,df=9,lower=F))
+		print(pchisq(Arsenal,df=9,lower=F))
+	}
 #    print(pchisq(Chelsea,df=9))
 #    print(dchisq(Arsenal,df=9))
 }
@@ -302,19 +314,24 @@ batch_verification <- function(size){
 		#print(Manu)
 		#print(Chelsea)
 		#print(Arsenal)
-		Pmanu <- pchisq(Manu,df=9,lower=F)
-		Pchelsea <- pchisq(Chelsea,df=9,lower=F)
-		Parsenal <- pchisq(Arsenal,df=9,lower=F)
-		#test <- cbind(Manu,Chelsea,Arsenal)
-		if( Pmanu<0.05 | Pchelsea < 0.05 | Parsenal < 0.05){
-			#print()
-			#print(pchisq(Chelsea,df=9,lower=F))
-			#print(pchisq(Arsenal,df=9,lower=F))
-			count <- count +1
-		}	
+		if(Manu == -1 | Chelsea == -1 | Arsenal == -1){
+			cat("i :",i, "  Single digit voting cannot process data\n")
+		}
 		else{
-			cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-		}	
+			Pmanu <- pchisq(Manu,df=9,lower=F)
+			Pchelsea <- pchisq(Chelsea,df=9,lower=F)
+			Parsenal <- pchisq(Arsenal,df=9,lower=F)
+			#test <- cbind(Manu,Chelsea,Arsenal)
+			if( Pmanu<0.05 | Pchelsea < 0.05 | Parsenal < 0.05){
+				#print()
+				#print(pchisq(Chelsea,df=9,lower=F))
+				#print(pchisq(Arsenal,df=9,lower=F))
+				count <- count +1
+			}	
+			else{
+				cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+			}	
+		}
 	}
 	cat ("Detected :",count, "  out of ", size, " times")
 }
