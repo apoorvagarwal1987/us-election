@@ -12,6 +12,9 @@ us_alaska_precint_county_info = read.table("gis/study_17216_Alaska/AK_08_merge_f
 #To have the information about state and electoral
 state_electoral = read.xls("data/state-electoral.xlsx",sheet=1,na.strings='NA')
 
+#To review the warning
+options(warn=1)
+
 *******************************************************************Generic Functions*********************************************************************
 
 #Function to find the choice of people 
