@@ -15,6 +15,11 @@ us_precint_county_info = read.xls("data/precints_census/02.xls",sheet=1,na.strin
 #To have the information about state and electoral
 state_electoral = read.xls("data/state-electoral.xlsx",sheet=1,na.strings='NA')
 
+#na.omit(dat)
+
+#To review the warning
+options(warn=1)
+
 #*******************************************************************Generic Functions*********************************************************************
 #Function to find the choice of people authentic approach 
 candidate_choice <- function(n){
@@ -76,7 +81,7 @@ vote_aggregation_county <- function(){
 	dt <- as.data.table(votes_precints)
 	county_result <- data.frame(dt[,list(Precints = .N,Population = sum(Population),MANU = sum(MANU),CHELSEA = sum(CHELSEA),ARSENAL = sum(ARSENAL)),by="County-Code"])
 	colnames(county_result)[1] <- "County-Code"
-    write.table(county_result,file="county_result.txt",append=T,col.names=F,row.names=F)
+    write.table(county_result,file="county_result.txt",append=F,col.names=F,row.names=F)
 	return(county_result)
 }
 
@@ -306,7 +311,9 @@ verify_result <- function(){
 batch_verification <- function(size){
 	for (i in 1:size){
 		ty <- vote_aggregation_county()	
-		count <- 0
+		count1 <- 0
+		count2 <- 0
+		count3 <- 0		
 		voted_data <- read.table("county_result.txt",sep="",header=F)
 		Manu <- benford_law(as.list(voted_data[,4]))
 		Chelsea <- benford_law(as.list(voted_data[,5]))
@@ -322,16 +329,31 @@ batch_verification <- function(size){
 			Pchelsea <- pchisq(Chelsea,df=9,lower=F)
 			Parsenal <- pchisq(Arsenal,df=9,lower=F)
 			#test <- cbind(Manu,Chelsea,Arsenal)
-			if( Pmanu<0.05 | Pchelsea < 0.05 | Parsenal < 0.05){
+			if( Pmanu<0.05){
 				#print()
 				#print(pchisq(Chelsea,df=9,lower=F))
 				#print(pchisq(Arsenal,df=9,lower=F))
-				count <- count +1
-			}	
+				count1 <- count1 +1
+				#cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+			}
+			else if( Pchelsea < 0.05){
+				#print()
+				#print(pchisq(Chelsea,df=9,lower=F))
+				#print(pchisq(Arsenal,df=9,lower=F))
+				count2 <- count2 +1
+				#cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+			}
+			else if(Parsenal < 0.05){
+				#print()
+				#print(pchisq(Chelsea,df=9,lower=F))
+				#print(pchisq(Arsenal,df=9,lower=F))
+				count3 <- count3 +1
+				#cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+			}
 			else{
 				cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
 			}	
 		}
 	}
-	cat ("Detected :",count, "  out of ", size, " times")
+	cat ("Detected 1:",count1, " Detected 2:",count2,"  Detected 3:",count3,"  out of ", size, " times")
 }

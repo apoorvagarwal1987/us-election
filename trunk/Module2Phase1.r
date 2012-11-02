@@ -22,6 +22,9 @@ us_precint_county_info = read.xls("data/precints_census/02.xls",sheet=1,na.strin
 #To have the information about state and electoral
 state_electoral = read.xls("data/state-electoral.xlsx",sheet=1,na.strings='NA')
 
+#To review the warning
+options(warn=1)
+
 #*******************************************************************Generic Functions*********************************************************************
 
 #Function to find the choice of people authentic approach 
