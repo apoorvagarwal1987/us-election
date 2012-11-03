@@ -108,11 +108,11 @@ vote_generation_precints_fraud1 <- function(){
         # basically doing the booth capturing in the way that all the precints supports Candidate A(MANU)
         choice <- candidate_choice_fraud(length(sections))
         total_candidate <- 0
-        for ( j in 1:(length(sections)-1)){
+        for ( j in 1:(length(sections))){
             candidate[[j]] <- as.integer(us_precint_info$Population[i] * choice[[j]])
-            total_candidate <- total_candidate + candidate[[j]]
+            #total_candidate <- total_candidate + candidate[[j]]
         }
-        candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
+        #candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
         #print (choice)
         sectionRandom[[i]] = as.integer(c(candidate[[1]] ,candidate[[2]] ,candidate[[3]]))
     }
@@ -149,11 +149,11 @@ vote_generation_precints_fraud2 <- function(){
             choice <- candidate_choice(length(sections))
         }
         total_candidate <- 0
-        for ( j in 1:(length(sections)-1)){
+        for ( j in 1:(length(sections))){
             candidate[[j]] <- as.integer(us_precint_info$Population[i] * choice[[j]])
-            total_candidate <- total_candidate + candidate[[j]]
+            #total_candidate <- total_candidate + candidate[[j]]
         }
-        candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
+        #candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
         #print (choice)
         sectionRandom[[i]] = as.integer(c(candidate[[1]] ,candidate[[2]] ,candidate[[3]]))
     }
@@ -219,11 +219,11 @@ vote_generation_precints_fraud3 <- function(){
         }
         else{}
         total_candidate <- 0
-        for ( j in 1:(length(sections)-1)){
+        for ( j in 1:(length(sections))){
             candidate[[j]] <- as.integer(us_precint_info$Population[i] * choice[[j]])
-            total_candidate <- total_candidate + candidate[[j]]
+           # total_candidate <- total_candidate + candidate[[j]]
         }
-        candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
+        #candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
         #print (choice)
         sectionRandom[[i]] = as.integer(c(candidate[[1]] ,candidate[[2]] ,candidate[[3]]))
     }

@@ -51,11 +51,11 @@ vote_generation_precints <- function(){
     for(i in 1:nrow(us_precint_info)){
         choice <- candidate_choice(length(sections))
         total_candidate <- 0
-        for ( j in 1:(length(sections)-1)){
+        for ( j in 1:(length(sections))){
             candidate[[j]] <- as.integer(us_precint_info$Population[i] * choice[j])
-            total_candidate <- total_candidate + as.integer(candidate[[j]])
+            #total_candidate <- total_candidate + as.integer(candidate[[j]])
         }
-        candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
+        #candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
         sectionRandom[[i]] = as.integer(c(candidate[[1]] ,candidate[[2]] ,candidate[[3]]))
     }
     votes_distributed <-as.data.frame(do.call("rbind",sectionRandom))

@@ -55,11 +55,11 @@ vote_generation_precints <- function(){
 	for(i in 1:nrow(us_precint_info)){
 		choice <- candidate_choice(length(sections))
 		total_candidate <- 0
-		for ( j in 1:(length(sections)-1)){
+		for ( j in 1:(length(sections))){
 			candidate[[j]] <- as.integer(us_precint_info$Population[i] * choice[[j]])
-			total_candidate <- total_candidate + candidate[[j]]
+			#total_candidate <- total_candidate + candidate[[j]]
 		}
-		candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
+		#candidate[[length(sections)]] = as.integer(as.numeric(us_precint_info$Population[i]) - total_candidate)
 		#print (choice)
 		sectionRandom[[i]] = as.integer(c(candidate[[1]] ,candidate[[2]] ,candidate[[3]]))
 	}
@@ -197,7 +197,7 @@ batch_election <- function(batch, n,state){
 
 library("plyr")
 library("stringr")
-#Function for finding the Benford Probability of the given number
+#Function for finding the 2nd Dig Benford Probability of the given number
 benford_probability_2Dig <- function(digit){
 	result <- 0
 	for (i in 1:9){
@@ -207,6 +207,17 @@ benford_probability_2Dig <- function(digit){
    # print(result)
 	return(result)
 }
+
+#Function for finding the 1st Dig Benford Probability of the given number
+benford_probability_1Dig <- function(digit){
+	result <- 0
+	result <- log10(1 + (1/digit))
+   # print(result)
+	return(result)
+}
+
+
+
 
 benford_probability_range <- function(){
 	benrange <- list()
@@ -218,17 +229,19 @@ benford_probability_range <- function(){
 }
 
 position_digit <- function(number,digit){
-	len <- str_length(as.character(number))
-	if (len==1){
-		num = -1
-	}
-	else{
-		num <- as.numeric(strsplit(as.character(number),"")[[1]])[digit]
-	}
-	return(num)
+    len <- str_length(as.character(number))
+    #print(number)
+    if (len==1){
+        num <- as.numeric(strsplit(as.character(number),"")[[1]])[1]
+    }
+    else{
+        num <- as.numeric(strsplit(as.character(number),"")[[1]])[digit]
+    }
+    return(num)
 }
 
-benford_law <- function(county_result){
+
+benford_law_2BL <- function(county_result){
 	#print(county_result)
 	digit_occurences <- as.list(rep(0,10))
 	for(i in 1:length(county_result)){
@@ -285,11 +298,69 @@ benford_law <- function(county_result){
 	return (total_prob)
 }
 
+
+benford_law_1BL <- function(county_result){
+	#print(county_result)
+	digit_occurences <- as.list(rep(0,10))
+	for(i in 1:length(county_result)){
+		digit <- position_digit(county_result[[i]],1)
+		if(digit == 1){
+			digit_occurences[[1]] <- as.list(as.integer(digit_occurences[[1]]) + 1)
+		}
+		else if(digit == 2){
+			digit_occurences[[2]] <- as.list(as.integer(digit_occurences[[2]]) + 1)
+		}
+		else if(digit == 3){
+			digit_occurences[[3]] <- as.list(as.integer(digit_occurences[[3]]) + 1)
+		}
+		else if(digit == 4){
+			digit_occurences[[4]] <- as.list(as.integer(digit_occurences[[4]]) + 1)
+		}
+		else if(digit == 5){
+			digit_occurences[[5]] <- as.list(as.integer(digit_occurences[[5]]) + 1)
+		}
+		else if(digit == 6){
+			digit_occurences[[6]] <- as.list(as.integer(digit_occurences[[6]]) + 1)
+		}
+		else if(digit == 7){
+			digit_occurences[[7]] <- as.list(as.integer(digit_occurences[[7]]) + 1)
+		}
+		else if(digit == 8){
+			digit_occurences[[8]] <- as.list(as.integer(digit_occurences[[8]]) + 1)
+		}
+		else if(digit == 9){
+			digit_occurences[[9]] <- as.list(as.integer(digit_occurences[[9]]) + 1)
+		}
+		else if(digit == 0){
+			digit_occurences[[10]] <- as.list(as.integer(digit_occurences[[10]]) + 1)
+		}
+		else {
+			return (-1)
+		}
+	}
+	tot_rows <- length(county_result)
+	total_prob <- 0
+	for (i in 1:9){
+		digit_frequency = as.integer(digit_occurences[[i]])
+		if(i<10){
+			prob <- benford_probability_1Dig(i)
+		}
+		else{
+			prob <- benford_probability_1Dig(0)
+		}
+
+		numerator <- (digit_frequency - tot_rows * prob)^2
+		denominator <- (tot_rows * prob)
+		total_prob <- total_prob + (numerator/denominator)
+	}
+	return (total_prob)
+}
+
 verify_result <- function(){
 	voted_data <- read.table("county_result.txt",sep="",header=F)
-	Manu <- benford_law(as.list(voted_data[,4]))
-	Chelsea <- benford_law(as.list(voted_data[,5]))
-	Arsenal <- benford_law(as.list(voted_data[,6]))
+	Manu <- benford_law_1BL(as.list(voted_data[,4]))
+	Chelsea <- benford_law_1BL(as.list(voted_data[,5]))
+	Arsenal <- benford_law_1BL(as.list(voted_data[,6]))
 	if(Manu == -1 | Chelsea == -1 | Arsenal == -1){
 		print("Single digit voting cannot process data")
 
@@ -309,51 +380,57 @@ verify_result <- function(){
 
 
 batch_verification <- function(size){
-	for (i in 1:size){
-		ty <- vote_aggregation_county()	
-		count1 <- 0
-		count2 <- 0
-		count3 <- 0		
-		voted_data <- read.table("county_result.txt",sep="",header=F)
-		Manu <- benford_law(as.list(voted_data[,4]))
-		Chelsea <- benford_law(as.list(voted_data[,5]))
-		Arsenal <- benford_law(as.list(voted_data[,6]))
-		#print(Manu)
-		#print(Chelsea)
-		#print(Arsenal)
-		if(Manu == -1 | Chelsea == -1 | Arsenal == -1){
-			cat("i :",i, "  Single digit voting cannot process data\n")
-		}
-		else{
-			Pmanu <- pchisq(Manu,df=9,lower=F)
-			Pchelsea <- pchisq(Chelsea,df=9,lower=F)
-			Parsenal <- pchisq(Arsenal,df=9,lower=F)
-			#test <- cbind(Manu,Chelsea,Arsenal)
-			if( Pmanu<0.05){
-				#print()
-				#print(pchisq(Chelsea,df=9,lower=F))
-				#print(pchisq(Arsenal,df=9,lower=F))
-				count1 <- count1 +1
-				#cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-			}
-			else if( Pchelsea < 0.05){
-				#print()
-				#print(pchisq(Chelsea,df=9,lower=F))
-				#print(pchisq(Arsenal,df=9,lower=F))
-				count2 <- count2 +1
-				#cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-			}
-			else if(Parsenal < 0.05){
-				#print()
-				#print(pchisq(Chelsea,df=9,lower=F))
-				#print(pchisq(Arsenal,df=9,lower=F))
-				count3 <- count3 +1
-				#cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-			}
-			else{
-				cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-			}	
-		}
-	}
-	cat ("Detected 1:",count1, " Detected 2:",count2,"  Detected 3:",count3,"  out of ", size, " times")
+    count1 <- 0
+    count2 <- 0
+    count3 <- 0
+    for (i in 1:size){
+        #ty <- vote_aggregation_county()	
+	
+       # voted_data <- read.table("county_result.txt",sep="",header=F)
+        voted_data <- as.data.frame(vote_generation_precints_fraud3())
+        Manu <- benford_law_2BL(as.list(voted_data[,3]))
+        Chelsea <- benford_law_2BL(as.list(voted_data[,4]))
+        Arsenal <- benford_law_2BL(as.list(voted_data[,5]))
+        #print(Manu)
+        #print(Chelsea)
+        #print(Arsenal)
+        if(Manu == -1 | Chelsea == -1 | Arsenal == -1){
+            cat("i :",i, "  Single digit voting cannot process data\n")
+        }
+        else{
+            Pmanu <- pchisq(Manu,df=9,lower=F)
+            Pchelsea <- pchisq(Chelsea,df=9,lower=F)
+            Parsenal <- pchisq(Arsenal,df=9,lower=F)
+            #test <- cbind(Manu,Chelsea,Arsenal)
+            threshold <- 0.04
+            if( Pmanu<threshold){
+                #print()
+                #print(pchisq(Chelsea,df=9,lower=F))
+                #print(pchisq(Arsenal,df=9,lower=F))
+                count1 <- count1 + 1
+                print("Fraud in Can 1")
+                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+            }
+            else if( Pchelsea <threshold){
+                #print()
+                #print(pchisq(Chelsea,df=9,lower=F))
+                #print(pchisq(Arsenal,df=9,lower=F))
+                count2 <- count2 +1
+                print("Fraud in Can 2")
+                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+            }
+            else if(Parsenal < threshold){
+                #print()
+                #print(pchisq(Chelsea,df=9,lower=F))
+                #print(pchisq(Arsenal,df=9,lower=F))
+                count3 <- count3 +1
+                print("Fraud in Can 3")
+                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+            }
+            else{
+                cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+            }	
+        }
+    }
+    cat ("Detected 1:",count1, " Detected 2:",count2,"  Detected 3:",count3,"  out of ", size, " times")
 }
