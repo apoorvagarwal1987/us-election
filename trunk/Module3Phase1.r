@@ -434,3 +434,30 @@ batch_verification <- function(size){
     }
     cat ("Detected 1:",count1, " Detected 2:",count2,"  Detected 3:",count3,"  out of ", size, " times")
 }
+
+
+
+#*********Random Number Generation*******************************
+votes  <- count(sample(c('r','d','o'),size=1250,replace=TRUE,prob=c(0.1,0.5,0.4)))
+
+
+###*************All Test Failing************************************
+genVotes <- function(size, candidate = 3, nprecincts=500, mf=1/3, onen=5, twon=5, onev=2, twov=2) {
+    p3 <- c(0,mf,1);
+    onex <- rnorm(1, onen, onev);
+    twox <- rnorm(1, twon, twov);
+    pf <- c( exp(onex), 1, exp(twox) )/(exp(onex)+exp(twox)+1);
+    q <- runif(1,0,1);
+    return (pf)
+}
+
+
+###*************Most  Test Passing************************************
+genVotes <- function(size, candidate = 3, nprecincts=500, mf=1/3, onen=.5, twon=.5, onev=.2, twov=.2) {
+    p3 <- c(0,mf,1);
+    onex <- rnorm(1, onen, onev);
+    twox <- rnorm(1, twon, twov);
+    pf <- c( exp(onex), 1, exp(twox) )/(exp(onex)+exp(twox)+1);
+    q <- runif(1,0,1);
+    return (pf)
+}
