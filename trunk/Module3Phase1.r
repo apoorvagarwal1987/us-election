@@ -194,7 +194,6 @@ batch_election <- function(batch, n,state){
 }
 
 #***********************************************************Validation Functions*****************************************************************************
-
 library("plyr")
 library("stringr")
 #Function for finding the 2nd Dig Benford Probability of the given number
@@ -387,7 +386,7 @@ batch_verification <- function(size){
         #ty <- vote_aggregation_county()	
 	
        # voted_data <- read.table("county_result.txt",sep="",header=F)
-        voted_data <- as.data.frame(vote_generation_precints_fraud3())
+        voted_data <- as.data.frame(vote_generation_precints())
         Manu <- benford_law_2BL(as.list(voted_data[,3]))
         Chelsea <- benford_law_2BL(as.list(voted_data[,4]))
         Arsenal <- benford_law_2BL(as.list(voted_data[,5]))
@@ -408,7 +407,7 @@ batch_verification <- function(size){
                 #print(pchisq(Chelsea,df=9,lower=F))
                 #print(pchisq(Arsenal,df=9,lower=F))
                 count1 <- count1 + 1
-                print("Fraud in Can 1")
+                #print("Fraud in Can 1")
                 #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
             }
             else if( Pchelsea <threshold){
@@ -416,7 +415,7 @@ batch_verification <- function(size){
                 #print(pchisq(Chelsea,df=9,lower=F))
                 #print(pchisq(Arsenal,df=9,lower=F))
                 count2 <- count2 +1
-                print("Fraud in Can 2")
+                #print("Fraud in Can 2")
                 #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
             }
             else if(Parsenal < threshold){
@@ -424,16 +423,38 @@ batch_verification <- function(size){
                 #print(pchisq(Chelsea,df=9,lower=F))
                 #print(pchisq(Arsenal,df=9,lower=F))
                 count3 <- count3 +1
-                print("Fraud in Can 3")
+                #print("Fraud in Can 3")
                 #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
             }
             else{
-                cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
             }	
         }
     }
-    cat ("Detected 1:",count1, " Detected 2:",count2,"  Detected 3:",count3,"  out of ", size, " times")
+    #cat ("Detected 1:",count1, " Detected 2:",count2,"  Detected 3:",count3,"  out of ", size, " times")
+    passed <- (size - (count1 + count2 + count3 ))
+    election_verification <- as.data.frame(cbind(size , passed, count1 , count2 , count3 ) )
+	colnames(election_verification)[1] <- "Tries"
+	colnames(election_verification)[2] <- "Passes"
+	colnames(election_verification)[3] <- "MANU-FAILED"
+	colnames(election_verification)[4] <- "CHELSEA-FAILED"
+	colnames(election_verification)[5] <- "ARSENAL-FAILED"
+	return (election_verification)
+
 }
+
+group_verification <- function(n = 20, batch = 5){
+
+	batch_verification_temp <- list()
+	for (i in 1:batch){
+		batch_verification_temp[[i]] <- batch_verification(n)
+	}
+	group_verification_result <- as.data.frame(do.call("rbind",batch_verification_temp))
+	return(group_verification_result)   
+}
+
+
+
 
 
 
@@ -453,7 +474,7 @@ genVotes <- function(size, candidate = 3, nprecincts=500, mf=1/3, onen=5, twon=5
 
 
 ###*************Most  Test Passing************************************
-genVotes <- function(size, candidate = 3, nprecincts=500, mf=1/3, onen=.5, twon=.5, onev=.2, twov=.2) {
+genVotes <- function(size, candidate = 3, nprecincts=500, mf=1/3, onen=.5, twon=5, onev=.2, twov=2) {
     p3 <- c(0,mf,1);
     onex <- rnorm(1, onen, onev);
     twox <- rnorm(1, twon, twov);
@@ -461,3 +482,50 @@ genVotes <- function(size, candidate = 3, nprecincts=500, mf=1/3, onen=.5, twon=
     q <- runif(1,0,1);
     return (pf)
 }
+
+
+Fraud in 1: (size, candidate = 3, nprecincts=500, mf=1/3, onen=.5, twon=5, onev=.2, twov=2)
+Fraud in 2: (size, candidate = 3, nprecincts=500, mf=1/3, onen=5, twon=.5, onev=2, twov=.2)
+
+###*************Testing Some Samples***********************************
+
+mechAm <- function(size, nprecincts=500, mf=1/3, lgp=1, hgp=1, lb=4, ha=4) {
+lgb <- exp(lgp)/(exp(lgp)+exp(hgp)+1);
+hgb <- exp(hgp)/(exp(lgp)+exp(hgp)+1);
+mgb <-
+1/(exp(lgp)+exp(hgp)+1);
+pb <- ceiling(size/250);
+sapply(1:nprecincts, function(x){
+p3 <- c( rbeta(1,1/2,lb), mf, rbeta(1,ha,1/2) );
+q <- runif(1,0,1);
+pf <- c(q*lgb, mgb, (1-q)*hgb );
+sumv <- sum(size * p3 * pf/sum(pf))
+12
+# allocate votes to the pb machines
+mbeta <- rbeta(pb, 20,20*pb);
+mbmean <- 1/(pb+1);
+mtrunc <- ifelse(mbeta < mbmean, mbeta, mbmean);
+sumv * mtrunc/sum(mtrunc);
+})
+}
+
+candidate_choice <- function(n=3){
+    choice <- mechAm(1,3)
+    flag <- 1
+    while(flag == 1 ){
+        sum <- 0
+        for (i in 1:n){
+            sum <- choice[i] + sum 
+        }        
+        if(sum <= 1.04 &&  sum >= 0.96){
+            flag <- 0
+        }
+        else{
+            choice <- mechAm(1,3)
+        }
+    }
+    return(choice)
+}
+
+
+#
