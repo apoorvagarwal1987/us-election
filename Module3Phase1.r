@@ -44,7 +44,7 @@ vote_generation_precints <- function(){
 	#us_precint_info <- us_precint_county_info[c(6,8)]
 	us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
 	#us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
-	us_precint_info <- as.data.frame(us_precint_info[us_precint_info[[1]] > 60, ])
+	us_precint_info <- as.data.frame(us_precint_info[us_precint_info[[1]] != "0", ])
 
 	colnames(us_precint_info)[1] <- "Population" 
 	colnames(us_precint_info)[2] <- "County-Code" 
@@ -407,7 +407,7 @@ batch_verification <- function(size){
                 #print(pchisq(Chelsea,df=9,lower=F))
                 #print(pchisq(Arsenal,df=9,lower=F))
                 count1 <- count1 + 1
-                #print("Fraud in Can 1")
+                print("Fraud in Can 1")
                 #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
             }
             else if( Pchelsea <threshold){
@@ -415,7 +415,7 @@ batch_verification <- function(size){
                 #print(pchisq(Chelsea,df=9,lower=F))
                 #print(pchisq(Arsenal,df=9,lower=F))
                 count2 <- count2 +1
-                #print("Fraud in Can 2")
+                print("Fraud in Can 2")
                 #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
             }
             else if(Parsenal < threshold){
@@ -423,11 +423,11 @@ batch_verification <- function(size){
                 #print(pchisq(Chelsea,df=9,lower=F))
                 #print(pchisq(Arsenal,df=9,lower=F))
                 count3 <- count3 +1
-                #print("Fraud in Can 3")
+                print("Fraud in Can 3")
                 #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
             }
             else{
-                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+                cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
             }	
         }
     }
@@ -543,4 +543,4 @@ mechA <- function(size = 100, nprecincts = 1, mf=1/3, onem=.19, onev=.19,twom=1,
 }
 
 
-#**************************************************************************
+#****************************Ways to use policies to remove the randomness in the voting***************************************
