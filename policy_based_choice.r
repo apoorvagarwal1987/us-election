@@ -285,7 +285,7 @@ batch_verification <- function(size){
         #ty <- vote_aggregation_county()	
 	
        # voted_data <- read.table("county_result.txt",sep="",header=F)
-        voted_data <- as.data.frame(vote_generation_precints())
+        voted_data <- as.data.frame(vote_generation_precints_policy_based())
         Manu <- benford_law_2BL(as.list(voted_data[,3]))
         Chelsea <- benford_law_2BL(as.list(voted_data[,4]))
         Arsenal <- benford_law_2BL(as.list(voted_data[,5]))
