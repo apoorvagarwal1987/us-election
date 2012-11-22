@@ -44,7 +44,7 @@ vote_generation_precints <- function(){
 	#us_precint_info <- us_precint_county_info[c(6,8)]
 	us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
 	#us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
-	us_precint_info <- as.data.frame(us_precint_info[us_precint_info[[1]] != "0", ])
+	us_precint_info <- as.data.frame(us_precint_info[us_precint_info[[1]] > 60, ])
 
 	colnames(us_precint_info)[1] <- "Population" 
 	colnames(us_precint_info)[2] <- "County-Code" 
@@ -500,7 +500,6 @@ p3 <- c( rbeta(1,1/2,lb), mf, rbeta(1,ha,1/2) );
 q <- runif(1,0,1);
 pf <- c(q*lgb, mgb, (1-q)*hgb );
 sumv <- sum(size * p3 * pf/sum(pf))
-12
 # allocate votes to the pb machines
 mbeta <- rbeta(pb, 20,20*pb);
 mbmean <- 1/(pb+1);
@@ -527,5 +526,21 @@ candidate_choice <- function(n=3){
     return(choice)
 }
 
+mechA <- function(size = 100, nprecincts = 1, mf=1/3, onem=.19, onev=.19,twom=1,twov=1) {
+    #lgb <- exp(lgp)/(exp(lgp)+exp(hgp)+1);	
+    #hgb <- exp(hgp)/(exp(lgp)+exp(hgp)+1);
+    #mgb <- 1/(exp(lgp)+exp(hgp)+1);
+    sapply(1:nprecincts, function(x){
+        q <-runif(1,0,1);
+        onex<-rnorm(1,onem,onev);
+        twox<-rnorm(1,twom,twov);
+        pf<-c(exp(onex),1,exp(twox))/(exp(onex)+exp(twox)+1);
+        pfq=pf*q;
+        #pf <- c(q*lgb, mgb, (1-q)*hgb );
+        round(size * pfq/sum(pfq))
+        #round(size * pf)
+    })
+}
 
-#
+
+#**************************************************************************
