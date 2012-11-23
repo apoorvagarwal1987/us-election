@@ -65,7 +65,6 @@ vote_generation_precints_policy_based <- function(){
 	return (votes_distributed)
 }
 
-<<<<<<< .mine
 policy_choice <- function(precint_size=10) {
     ncandidates = 3
     npolicies = 8
@@ -83,25 +82,7 @@ policy_choice <- function(precint_size=10) {
     #person_candidate_distance = candidate_policies %*% person_policy_liking
     candidate_voted = which(person_candidate_distance == min(person_candidate_distance), arr.ind = TRUE)[1]
     return(candidate_voted)
-=======
-policy_choice <- function() {
-    ncandidates = 3
-    npolicies = 8
-    policy_weightage = matrix(c(1,1.2,0.3,0.4,0.7,0.1,0.2,0.9))
-    candidate_policies = cbind(c(1,0,0),c(0,0.5,0),c(0,1,0.5),c(1,0,0),c(0,1,1),c(1,0,0),c(1,1,1),c(1,0,0.5))
-    candidate_policies <- matrix(as.numeric(candidate_policies),ncandidates,npolicies)
-    person_policy_liking = t(policy_weight(precint_size,npolicies))
-    person_candidate_distance <- list()
-    for(i in 1:ncandidates){
-        diff = (candidate_policies[i,] - person_policy_liking)^2
-        person_candidate_distance[[i]] = (diff %*% policy_weightage)[1]
-    }
-    person_candidate_distance <- as.matrix(person_candidate_distance)
-    person_candidate_distance <- matrix(as.numeric(person_candidate_distance),ncandidates,1)
-    #person_candidate_distance = candidate_policies %*% person_policy_liking
-    candidate_voted = which(person_candidate_distance == min(person_candidate_distance), arr.ind = TRUE)[1]
-    return(candidate_voted)
->>>>>>> .r25
+
 }
 
 policy_weight <- function(precint_size = 500, npolicies = 8) {
