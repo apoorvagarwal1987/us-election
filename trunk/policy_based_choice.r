@@ -326,7 +326,7 @@ batch_verification <- function (size){
         #print(Chelsea)
         #print(Arsenal)
         threshold <- 0.05
-        new_threshold = use_fdr(total_counties,threshold)
+        new_threshold = use_fdr(total_counties ,threshold)
         if(Manu == -1 | Chelsea == -1 | Arsenal == -1){
             cat("i :",i, "  Single digit voting cannot process data\n")
         }
