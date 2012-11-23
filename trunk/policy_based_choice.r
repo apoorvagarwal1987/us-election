@@ -22,7 +22,7 @@ options(warn=1)
 
 #*******************************************************************Generic Functions*********************************************************************
 
-vote_generation_precints_policy_based <- function(){
+vote_generation_precints_policy_based <- function(us_precint_county_info){
 	#us_precint_info <- us_precint_county_info[c(6,8)]
 	us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
 	#us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
@@ -122,9 +122,6 @@ benford_probability_1Dig <- function(digit){
    # print(result)
 	return(result)
 }
-
-
-
 
 benford_probability_range <- function(){
 	benrange <- list()
@@ -295,57 +292,61 @@ batch_verification <- function (size){
     count2 <- 0
     count3 <- 0
     for (i in 1:size){
-        #ty <- vote_aggregation_county()	
-	
+       #ty <- vote_aggregation_county()		
        # voted_data <- read.table("county_result.txt",sep="",header=F)
-        voted_data <- as.data.frame(vote_generation_precints_policy_based())
-        Manu <- benford_law_2BL(as.list(voted_data[,3]))
-        Chelsea <- benford_law_2BL(as.list(voted_data[,4]))
-        Arsenal <- benford_law_2BL(as.list(voted_data[,5]))
-        total_counties = length(unique(voted_data$County.Code))
-        #print(Manu)
-        #print(Chelsea)
-        #print(Arsenal)
-        threshold <- 0.05
-        new_threshold = use_fdr(total_counties ,threshold)
-        if(Manu == -1 | Chelsea == -1 | Arsenal == -1){
-            cat("i :",i, "  Single digit voting cannot process data\n")
-        }
-        else{
-            Pmanu <- pchisq(Manu,df=9,lower=F)
-            Pchelsea <- pchisq(Chelsea,df=9,lower=F)
-            Parsenal <- pchisq(Arsenal,df=9,lower=F)
-            #test <- cbind(Manu,Chelsea,Arsenal)
-            
-            if( Pmanu < new_threshold){
-                #print()
-                #print(pchisq(Chelsea,df=9,lower=F))
-                #print(pchisq(Arsenal,df=9,lower=F))
-                count1 <- count1 + 1
-                print("Fraud in Can 1")
-                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-            }
-            else if( Pchelsea < new_threshold){
-                #print()
-                #print(pchisq(Chelsea,df=9,lower=F))
-                #print(pchisq(Arsenal,df=9,lower=F))
-                count2 <- count2 +1
-                print("Fraud in Can 2")
-                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-            }
-            else if(Parsenal < new_threshold){
-                #print()
-                #print(pchisq(Chelsea,df=9,lower=F))
-                #print(pchisq(Arsenal,df=9,lower=F))
-                count3 <- count3 +1
-                print("Fraud in Can 3")
-                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-            }
-            else{
-                cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
-            }	
-        }
-    }
+        file_names= list.files(path = "./data/precints_census/", pattern = NULL, all.files = FALSE,full.names = FALSE, recursive = FALSE,ignore.case = FALSE, include.dirs = FALSE)
+       	for(index in 1:length(file_names)){
+       		com_path  = paste("./data/precints_census",file_names[index],sep="/")
+	       	us_precint_county_info = read.xls(com_path,sheet=1,na.strings='NA')
+	        voted_data <- as.data.frame(vote_generation_precints_policy_based(us_precint_county_info))
+	        Manu <- benford_law_2BL(as.list(voted_data[,3]))
+	        Chelsea <- benford_law_2BL(as.list(voted_data[,4]))
+	        Arsenal <- benford_law_2BL(as.list(voted_data[,5]))
+	        total_counties = length(unique(voted_data$County.Code))
+	        #print(Manu)
+	        #print(Chelsea)
+	        #print(Arsenal)
+	        threshold <- 0.05
+	        new_threshold = use_fdr(total_counties ,threshold)
+	        if(Manu == -1 | Chelsea == -1 | Arsenal == -1){
+	            cat("i :",i, "  Single digit voting cannot process data\n")
+	        }
+	        else{
+	            Pmanu <- pchisq(Manu,df=9,lower=F)
+	            Pchelsea <- pchisq(Chelsea,df=9,lower=F)
+	            Parsenal <- pchisq(Arsenal,df=9,lower=F)
+	            #test <- cbind(Manu,Chelsea,Arsenal)
+	            
+	            if( Pmanu < new_threshold){
+	                #print()
+	                #print(pchisq(Chelsea,df=9,lower=F))
+	                #print(pchisq(Arsenal,df=9,lower=F))
+	                count1 <- count1 + 1
+	                cat("Fraud in Can 1"," for state :"	, substr(file_names[index],start=0,stop=nchar(file_names[index])-4) , " threshold was:" , new_threshold,"\n")
+	                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+	            }
+	            else if( Pchelsea < new_threshold){
+	                #print()
+	                #print(pchisq(Chelsea,df=9,lower=F))
+	                #print(pchisq(Arsenal,df=9,lower=F))
+	                count2 <- count2 +1
+	                cat("Fraud in Can 2"," for state :"	, substr(file_names[index],start=0,stop=nchar(file_names[index])-4) , " threshold was:" , new_threshold,"\n")
+	                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+	            }
+	            else if(Parsenal < new_threshold){
+	                #print()
+	                #print(pchisq(Chelsea,df=9,lower=F))
+	                #print(pchisq(Arsenal,df=9,lower=F))
+	                count3 <- count3 +1
+	                cat("Fraud in Can 3"," for state :"	, substr(file_names[index],start=0,stop=nchar(file_names[index])-4) , " threshold was:" , new_threshold,"\n")
+	                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+            	}
+	            else{
+	                cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+	            }	
+        	}
+	    }
+	}
     #cat ("Detected 1:",count1, " Detected 2:",count2,"  Detected 3:",count3,"  out of ", size, " times")
     passed <- (size - (count1 + count2 + count3 ))
     election_verification <- as.data.frame(cbind(size , passed, count1 , count2 , count3 ) )
@@ -355,7 +356,6 @@ batch_verification <- function (size){
 	colnames(election_verification)[4] <- "CHELSEA-FAILED"
 	colnames(election_verification)[5] <- "ARSENAL-FAILED"
 	return (election_verification)
-
 }
 
 group_verification <- function(n = 20, batch = 5){
