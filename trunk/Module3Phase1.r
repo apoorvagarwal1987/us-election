@@ -401,7 +401,7 @@ batch_verification <- function(size){
             Pchelsea <- pchisq(Chelsea,df=9,lower=F)
             Parsenal <- pchisq(Arsenal,df=9,lower=F)
             #test <- cbind(Manu,Chelsea,Arsenal)
-            threshold <- 0.04
+            threshold <- 0.05
             if( Pmanu<threshold){
                 #print()
                 #print(pchisq(Chelsea,df=9,lower=F))

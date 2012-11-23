@@ -68,10 +68,18 @@ vote_generation_precints_policy_based <- function(){
 policy_choice <- function(precint_size=10) {
 	ncandidates = 3
 	npolicies = 8
+	policy_weightage = matrix(c(1,1.2,0.3,0.4,0.7,0.1,0.2,0.9))
 	candidate_policies = cbind(c(1,0,0),c(0,0.5,0),c(0,1,0.5),c(1,0,0),c(0,1,1),c(1,0,0),c(1,1,1),c(1,0,0.5))
 	candidate_policies <- matrix(as.numeric(candidate_policies),ncandidates,npolicies)
-	person_policy_liking = policy_weight(precint_size,npolicies)
-	person_candidate_distance = candidate_policies %*% person_policy_liking
+	person_policy_liking = t(policy_weight(precint_size,npolicies))
+	person_candidate_distance <- as.list(rep(0,3))
+	for(i in 1:npolicies){
+		diff = (candidate_policies[i,] - person_policy_liking)^2
+		person_candidate_distance[[i]] = diff %*% policy_weightage	
+	}
+	person_candidate_distance = as.matrix(person_candidate_distance)
+	person_candidate_distance <- matrix(as.numeric(person_candidate_distance),ncandidates,1)
+	#person_candidate_distance = candidate_policies %*% person_policy_liking
 	candidate_voted = which(person_candidate_distance == min(person_candidate_distance), arr.ind = TRUE)[1]
 	return(candidate_voted)
 }
@@ -300,7 +308,7 @@ batch_verification <- function(size){
             Pchelsea <- pchisq(Chelsea,df=9,lower=F)
             Parsenal <- pchisq(Arsenal,df=9,lower=F)
             #test <- cbind(Manu,Chelsea,Arsenal)
-            threshold <- 0.04
+            threshold <- 0.05
             if( Pmanu<threshold){
                 #print()
                 #print(pchisq(Chelsea,df=9,lower=F))
