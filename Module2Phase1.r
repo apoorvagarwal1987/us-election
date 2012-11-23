@@ -16,7 +16,7 @@ us_states_census_info = read.table("data/USA_States.txt" ,sep="," ,header =T)
 
 # To collect the information like total population, number of precints for each county
 #us_precint_county_info = read.table("data/precints_census/02.tab", sep = "\t",header=T )
-us_precint_county_info = read.xls("data/precints_census/02.xls",sheet=1,na.strings='NA')
+us_precint_county_info = read.xls("data/precints_census/2.xls",sheet=1,na.strings='NA')
 
 
 #To have the information about state and electoral

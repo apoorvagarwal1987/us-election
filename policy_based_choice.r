@@ -22,7 +22,7 @@ options(warn=1)
 
 #*******************************************************************Generic Functions*********************************************************************
 
-vote_generation_precints_policy_based <- function(us_precint_county_info){
+vote_generation_precints_policy_based <- function(us_precint_county_info,state_name){
 	#us_precint_info <- us_precint_county_info[c(6,8)]
 	us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
 	#us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
@@ -282,7 +282,7 @@ verify_result <- function(){
 }
 
 use_fdr <- function(total_counties = 1,threshold = 0.05){
-	updated_threshold = threshold / total_counties
+	updated_threshold = threshold / (total_counties * 3 ) 
 	return(updated_threshold)
 }
 
@@ -298,13 +298,13 @@ batch_verification <- function (size){
        	for(index in 1:length(file_names)){
        		com_path  = paste("./data/precints_census",file_names[index],sep="/")
 	       	us_precint_county_info = read.xls(com_path,sheet=1,na.strings='NA')
-	        voted_data <- as.data.frame(vote_generation_precints_policy_based(us_precint_county_info))
+            state_id = substr(file_names[index],start=0,stop=nchar(file_names[index])-4)
+            state_name = subset(state_electoral,state_electoral$State.ID == state_id)[1,2]
+	        voted_data <- as.data.frame(vote_generation_precints_policy_based(us_precint_county_info,state_name,total_counties))
 	        Manu <- benford_law_2BL(as.list(voted_data[,3]))
 	        Chelsea <- benford_law_2BL(as.list(voted_data[,4]))
 	        Arsenal <- benford_law_2BL(as.list(voted_data[,5]))
 	        total_counties = length(unique(voted_data$County.Code))
-            state_id = substr(file_names[index],start=0,stop=nchar(file_names[index])-4)
-            state_name = subset(state_electoral,state_electoral$State.ID == state_id)[1,2]
 	        #print(Manu)
 	        #print(Chelsea)
 	        #print(Arsenal)
