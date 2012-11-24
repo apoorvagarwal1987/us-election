@@ -354,7 +354,7 @@ batch_verification <- function (size){
 	       	us_precint_county_info = read.xls(com_path,sheet=1,na.strings='NA')
             state_id = substr(file_names[index],start=0,stop=nchar(file_names[index])-4)
             state_name = subset(state_electoral,state_electoral$State.ID == state_id)[1,2]
-	        voted_data <- as.data.frame(vote_generation_precints_policy_based_fraud1(us_precint_county_info,state_name))
+	        voted_data <- as.data.frame(vote_generation_precints_policy_based(us_precint_county_info,state_name))
 	        threshold <- 0.05
 	        total_counties = length(unique(voted_data$County.Code))
 	        new_threshold = use_fdr(total_counties ,threshold)
