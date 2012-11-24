@@ -19,7 +19,7 @@ library("gdata") #for loading data from excel-sheet
 #To review the warning
 options(warn=1)
 
-#*******************************************************************Generic Functions*********************************************************************
+#***************************Generic Functions*************************************
 
 vote_generation_precints_policy_based <- function(us_precint_county_info,state_name){
 	#us_precint_info <- us_precint_county_info[c(6,8)]
@@ -98,8 +98,62 @@ policy_weight <- function(precint_size = 500, npolicies = 8) {
 	return (policy_weight_matrix)
 }
 
+#***************************Fraud 1*********************************************************
+#	Simple frauds with just taking some votes from candidate 2,3  and adding it up 
+#	into the votes for 1
 
-#***********************************************************Validation Functions*****************************************************************************
+
+vote_generation_precints_policy_based_fraud1 <- function(us_precint_county_info,state_name){
+	#us_precint_info <- us_precint_county_info[c(6,8)]
+	us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
+	#us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
+	us_precint_info <- as.data.frame(us_precint_info[us_precint_info[[1]] != "0", ])
+	colnames(us_precint_info)[1] <- "Population" 
+	colnames(us_precint_info)[2] <- "County-Code" 
+	#Generates random votes for the number of candidates
+	sections = c("Manu","Chelsea","Arsenal")
+	sectionRandom <- list()
+	fraud_ratio = 0.2
+	for(i in 1:nrow(us_precint_info)){
+		population_precint = us_precint_info$Population[i]
+		candidate <- as.list(rep(0,3))
+		for(person in 1:population_precint){
+			vote_candidate = policy_choice(population_precint)
+			if(vote_candidate == 1){
+				candidate[[1]] <- as.list(as.integer(candidate[[1]]) + 1)
+			}
+			else if(vote_candidate == 2){
+				candidate[[2]] <- as.list(as.integer(candidate[[2]]) + 1)
+			}
+			else if(vote_candidate == 3){
+				candidate[[3]] <- as.list(as.integer(candidate[[3]]) + 1)
+			}
+			else{
+				#Skip it
+			}
+		}
+
+		votes_donated_candidate2 = as.integer(candidate[[2]]) * fraud_ratio
+		votes_donated_candidate3 = as.integer(candidate[[3]]) * fraud_ratio
+		candidate[[1]] <- as.list(as.integer(candidate[[1]]) + votes_donated_candidate2 + votes_donated_candidate3)
+		candidate[[2]] <- as.list(as.integer(candidate[[2]]) - votes_donated_candidate2)
+		candidate[[3]] <- as.list(as.integer(candidate[[3]]) - votes_donated_candidate3)
+		sectionRandom[[i]] = as.integer(c(candidate[[1]] ,candidate[[2]] ,candidate[[3]]))		
+	}
+	votes_distributed <-as.data.frame(do.call("rbind",sectionRandom))
+	colnames(votes_distributed)[1] <- "MANU"
+	colnames(votes_distributed)[2] <- "CHELSEA"
+	colnames(votes_distributed)[3] <- "ARSENAL"
+
+	#Combined the result with the precints information with the votes distribution
+	votes_distributed <- c(us_precint_info,votes_distributed)
+	temp <- as.data.frame(votes_distributed)
+	#write.table(temp)
+	return (votes_distributed)
+}
+
+
+#***************************Validation Functions*********************************************************
 library("plyr")
 library("stringr")
 #Function for finding the 2nd Dig Benford Probability of the given number
@@ -300,7 +354,7 @@ batch_verification <- function (size){
 	       	us_precint_county_info = read.xls(com_path,sheet=1,na.strings='NA')
             state_id = substr(file_names[index],start=0,stop=nchar(file_names[index])-4)
             state_name = subset(state_electoral,state_electoral$State.ID == state_id)[1,2]
-	        voted_data <- as.data.frame(vote_generation_precints_policy_based(us_precint_county_info,state_name))
+	        voted_data <- as.data.frame(vote_generation_precints_policy_based_fraud1(us_precint_county_info,state_name))
 	        threshold <- 0.05
 	        total_counties = length(unique(voted_data$County.Code))
 	        new_threshold = use_fdr(total_counties ,threshold)
@@ -332,8 +386,10 @@ batch_verification <- function (size){
 		                #print(pchisq(Chelsea,df=9,lower=F))
 		                #print(pchisq(Arsenal,df=9,lower=F))
 		                count1 <- count1 + 1
-		                cat("Fraud in Can 1"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")
-		                cat("Fraud in Candidate 1"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold, file="./vote-result/analysis.txt",sep="\n")
+		                cat("Fraud in Can 1 for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")
+		                fline = paste("Fraud in Candidate 1"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold)
+		                cat(fline,file="./vote-result/analysis.txt" , append = TRUE)
+
 		                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
 		            }
 		            else if( Pchelsea < new_threshold){
@@ -341,9 +397,9 @@ batch_verification <- function (size){
 		                #print(pchisq(Chelsea,df=9,lower=F))
 		                #print(pchisq(Arsenal,df=9,lower=F))
 		                count2 <- count2 +1
-		                cat("Fraud in Can 2"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")
-		                cat("Fraud in Candidate 2"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold, file="./vote-result/analysis.txt",sep="\n")
-		                
+		                cat("Fraud in Can 2 for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")
+		                fline = paste("Fraud in Candidate 1"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold)
+		                cat(fline,file="./vote-result/analysis.txt" , append = TRUE)		                
 		                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
 		            }
 		            else if(Parsenal < new_threshold){
@@ -351,9 +407,9 @@ batch_verification <- function (size){
 		                #print(pchisq(Chelsea,df=9,lower=F))
 		                #print(pchisq(Arsenal,df=9,lower=F))
 		                count3 <- count3 +1
-		                cat("Fraud in Can 3"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")		                
-		                cat("Fraud in Candidate 3"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold, file="./vote-result/analysis.txt",sep="\n")
-		                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
+		                cat("Fraud in Can 3 for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")		                
+		                fline = paste("Fraud in Candidate 1"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold)
+		                cat(fline,file="./vote-result/analysis.txt" , append = TRUE)		                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
 	            	}
 		            else{
 		                cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal, " threshold was:" , new_threshold, " for state :"	, state_name ," and county_id: ",county_id[id],"\n")
