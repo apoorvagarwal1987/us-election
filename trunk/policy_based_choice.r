@@ -305,8 +305,9 @@ batch_verification <- function (size){
 	        total_counties = length(unique(voted_data$County.Code))
 	        new_threshold = use_fdr(total_counties ,threshold)
             temp_voted_data = as.data.frame(cbind(voted_data[,1],voted_data[,2],voted_data[,3],voted_data[,4],voted_data[,5]))
-            write.table(temp_voted_data,file="votes-data.txt")
-            state_vote_data = read.table("votes-data.txt",sep=" ",header=T)
+            file_votes_state = paste("./vote-result",state_name,sep="/")
+            write.table(temp_voted_data,file = file_votes_state)
+            state_vote_data = read.table(file_votes_state,sep =" ",header=T)
 	        county_id = unique(state_vote_data[[2]])
 	        for (id in 1:length(county_id)){
 	        	county_voted_data = subset(state_vote_data , V2 == county_id[id])
@@ -332,6 +333,7 @@ batch_verification <- function (size){
 		                #print(pchisq(Arsenal,df=9,lower=F))
 		                count1 <- count1 + 1
 		                cat("Fraud in Can 1"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")
+		                cat("Fraud in Candidate 1"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold, file="./vote-result/analysis.txt",sep="\n")
 		                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
 		            }
 		            else if( Pchelsea < new_threshold){
@@ -340,6 +342,8 @@ batch_verification <- function (size){
 		                #print(pchisq(Arsenal,df=9,lower=F))
 		                count2 <- count2 +1
 		                cat("Fraud in Can 2"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")
+		                cat("Fraud in Candidate 2"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold, file="./vote-result/analysis.txt",sep="\n")
+		                
 		                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
 		            }
 		            else if(Parsenal < new_threshold){
@@ -347,7 +351,8 @@ batch_verification <- function (size){
 		                #print(pchisq(Chelsea,df=9,lower=F))
 		                #print(pchisq(Arsenal,df=9,lower=F))
 		                count3 <- count3 +1
-		                cat("Fraud in Can 2"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")
+		                cat("Fraud in Can 3"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold,"\n")		                
+		                cat("Fraud in Candidate 3"," for state :"	, state_name, " and county id is: ",county_id[id] , " threshold was:" , new_threshold, file="./vote-result/analysis.txt",sep="\n")
 		                #cat ("Pmanu :",Pmanu," Pchelsea :",Pchelsea,"  Parsenal :",Parsenal,"\n")
 	            	}
 		            else{
@@ -355,8 +360,8 @@ batch_verification <- function (size){
 		            }	
 	        	}
 		    }
-		}
-		print("\n\n")
+		    cat("\n\n")
+		}		
 	}
     #cat ("Detected 1:",count1, " Detected 2:",count2,"  Detected 3:",count3,"  out of ", size, " times")
     passed <- (size - (count1 + count2 + count3 ))
