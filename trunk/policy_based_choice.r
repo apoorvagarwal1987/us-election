@@ -103,7 +103,7 @@ policy_weight <- function(precint_size = 500, npolicies = 8) {
 #	into the votes for 1
 
 
-vote_generation_precints_policy_based_fraud1 <- function(us_precint_county_votes,state_name){
+vote_generation_precints_policy_based_fraud1 <- function(us_precint_county_votes,state_name,ncountyparam = 1 , stolenparam = 0.30 , threshold = 0.20 ){
 	#us_precint_info <- us_precint_county_info[c(6,8)]
 	#us_precint_info <- as.data.frame(cbind(us_precint_county_info$VAP,us_precint_county_info$COUNTYFP_1))
 	#us_precint_info <- us_precint_info[us_precint_info$totpop!="0",]
@@ -113,48 +113,35 @@ vote_generation_precints_policy_based_fraud1 <- function(us_precint_county_votes
 	#Generates random votes for the number of candidates
 	#sections = c("Manu","Chelsea","Arsenal")
 	
-
-    dt <- as.data.table(us_precint_county_votes)
-    alaska_county_result <- data.frame(dt[,list(Precints = .N),by="County-Code"])
-
 	sectionRandom <- list()
-	fraud_ratio = 0.2
-	county_id =  unique(us_precint_county_votes$V2)
-	ncounties = length(county_id)
-	fraud_counties_index = as.integer(as.integer(ncounties * fraud_ratio),min = 1, max = ncounties)
-	fraud_counties = county_id[fraud_counties_index]
-	for(i in 1:nrow(us_precint_info)){
-		population_precint = us_precint_info$Population[i]
-		county_precinct_id = us_precint_info$CountyCode[i]
-		candidate <- as.list(rep(0,3))
-		for(person in 1:population_precint){
-			vote_candidate = policy_choice(population_precint)
-			if(vote_candidate == 1){
-				candidate[[1]] <- as.list(as.integer(candidate[[1]]) + 1)
-			}
-			else if(vote_candidate == 2){
-				candidate[[2]] <- as.list(as.integer(candidate[[2]]) + 1)
-			}
-			else if(vote_candidate == 3){
-				candidate[[3]] <- as.list(as.integer(candidate[[3]]) + 1)
-			}
-			else{
-				#Skip it
-			}
-		}
-		ret = is_fraud(county_precinct_id,fraud_counties)
-		votes_donated_candidate2 = 0
-		votes_donated_candidate3 = 0
+    dt <- as.data.table(us_precint_county_votes)
+    us_county <- data.frame(dt[,list(Precints = .N),by="V2"])
+    precinct_info = sort(us_county$Precints,decreasing=T)[1:ncountyparam]
+
+
+
+    for (i in 1:nrow(us_precint_county_votes)){
+		precints_population  = us_precint_county_votes[i,1]
+		county_id = us_precint_county_votes[i,2]
+		manu_votes = us_precint_county_votes[i,3]
+		chelsea_votes = us_precint_county_votes[i,4]
+		arsenal_votes = us_precint_county_votes[i,5]
+
+		ret = is_fraud(county_id,precinct_info)
 		if(ret == 1){
-			votes_donated_candidate2 = as.integer(candidate[[2]]) * fraud_ratio
-			votes_donated_candidate3 = as.integer(candidate[[3]]) * fraud_ratio
+			if(as.integer(manu_votes) < as.integer(threshold * precints_population)){
+				vote_stolen_chelsea = as.integer(stolenparam * as.integer(chelsea_votes))
+				vote_stolen_arsenal = as.integer(stolenparam * as.integer(arsenal_votes))
+				manu_votes = as.integer(manu_votes) + vote_stolen_chelsea + vote_stolen_arsenal
+				chelsea_votes = as.integer(chelsea_votes) - vote_stolen_chelsea
+				arsenal_votes = as.integer(arsenal_votes) - vote_stolen_arsenal
+				print("modified")
+			}
 		}
-		candidate[[1]] <- as.list(as.integer(candidate[[1]]) + votes_donated_candidate2 + votes_donated_candidate3)
-		candidate[[2]] <- as.list(as.integer(candidate[[2]]) - votes_donated_candidate2)
-		candidate[[3]] <- as.list(as.integer(candidate[[3]]) - votes_donated_candidate3)
-		sectionRandom[[i]] = as.integer(c(candidate[[1]] ,candidate[[2]] ,candidate[[3]]))		
+		sectionRandom[[i]] = as.integer(c(precints_population ,county_id ,manu_votes,chelsea_votes,arsenal_votes))	
 	}
-	votes_distributed <-as.data.frame(do.call("rbind",sectionRandom))
+	
+	votes_distributed <- as.data.frame(do.call("rbind",sectionRandom))
 	colnames(votes_distributed)[1] <- "MANU"
 	colnames(votes_distributed)[2] <- "CHELSEA"
 	colnames(votes_distributed)[3] <- "ARSENAL"
